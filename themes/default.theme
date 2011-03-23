@@ -1,0 +1,159 @@
+### Formatting Settings ###
+
+# Separator between season number and episode number
+set tvrage(seasonEpisodeSeparator) "x"
+
+# ***WARNING***
+# The following list of placeholders is probably out of date.  To get a complete and up to date list
+# of placeholders for a command set the debug level to TEMPLATE and run the command.  The supported
+# placeholders will be printed on the printed to the partyline.
+# ***WARNING***
+#
+# The following formatting settings support place holders.  These placeholders
+# represent pieces of the data to be displayed.  The following place holders
+# are supported:
+# 			{%%chan%%} -- Channel that trigger request came from
+#			{%%nick%%} -- Nick that made trigger request 
+#        {%%title%%} -- Show name 
+#        {%%url%%} -- URL to detailed show info (only available in showinfo)
+#			{%%premiered%%} -- Year show premiered (only available in showinfo)
+#			{%%latest%%} -- Wrapper for latestEpFormat/latestEpNoExistFormat settings (only available in showinfo)
+#			{%%next%%} -- Wrapper for nextEpFormat/nextEpNoExistFormat settings (only available in showinfo)
+#			{%%country%%} -- Country show originated in (only available in showinfo)
+#			{%%status%%} -- Status of show (cancelled, returning series, etc) (only available in showinfo)
+#			{%%nextSeason%%} -- Season number of next episode to air (only available in showinfo)
+#			{%%nextEpisode%%} -- Episode number of next episode to air (only available in showinfo)
+#			{%%nextTitle%%} -- Title of next episode to air (only available in showinfo)
+#			{%%nextDate%%} -- Date of next episode to air (only available in showinfo)
+#			{%%latestSeason%%} -- Season number of last episode to air (only available in showinfo)
+#			{%%latestEpisode%%} -- Episode number of last episode to air (only available in showinfo)
+#			{%%latestTitle%%} -- Title of last episode to air (only available in showinfo)
+#			{%%latestDate%%} -- Date of last episode to air (only available in showinfo)
+#			{%%date%%} -- Date of schedule being displayed (only available in schedule)
+#			{%%time%%} -- Time of airing (when displaying a schedule) (only available in schedule)
+#			{%%network%%} -- Network show airs on (only available in schedule)
+#			{%%epnum%%} -- "Season"x"Episode" of show airing (only available in schedule)
+#			{%%scheduleLine%%} -- Line in schedule listing (only available in schedule)
+#        {%%scheduleShowSeparator%%} -- Separator between shows in a schedule listing (only available in schedule)
+#        {%%epSeason%%} -- Season of Episode (only available in summary)
+#        {%%epNumber%%} -- Episode Number of show (only available in summary)
+#        {%%epTitle%%} -- Title of episode (only available in summary)
+#        {%%epDate%%} -- Date of first airing of episode (only available in summary)
+#        {%%summary%%} -- Summary of episode (only available in summary)
+#        {%%dirname%%} -- Name of directory being looked up. (only available in tvlogLine and tvlogNoFoundLine)
+#        {%%request%%} -- Show raw request for summary.  (only available in summary)
+#        {%%todayTrigger%%} -- Trigger to show schedule for today.  (only available in help format lines)
+#        {%%tomorrowTrigger%%} -- Trigger to show schedule for tomorrow.  (only available in help format lines)
+#        {%%scheduleTrigger%%} -- Trigger to show schedule for a variable day.  (only available in help format lines)
+#        {%%showinfoTrigger%%} -- Trigger to show information on a specified show.  (only available in help format lines)
+#        {%%helpTrigger%%} -- Trigger to show help information.  (only available in help format lines)
+#        {%%summaryTrigger%%} -- Trigger to show summary of a show.  (only available in help format lines)
+#        {%%versionLine%%} -- Version line with name of script and version number.  (only available in help format lines)
+#        {%%availableCountries%%} -- List of available countries.  (only available in help format lines)
+#        {%%upperAvailableCountries%%} -- List of available countries in uppercase.  (only available in help format lines)
+#        {%%lowerAvailableCountries%%} -- List of available countries in lowercase.  (only available in help format lines)
+#        {%%genres%%} -- List the show's genre.  (only available in showinfo)
+#        {%%nextTimeUntil%%} -- Shows how many months/days/hours/minutes/seconds there are until the next episode airs.
+#                               Requires that $tvrage(offsetHours) be set properly in your conf file to get an accurate
+#                               number.
+#        {%%latestTimeUntil%%} -- Shows how many months/days/hours/minutes/seconds there are since the last episode aired.
+#                                 Requires that $tvrage(offsetHours) be set properly in your conf file to get an accurate
+#                                 number.
+#
+# Syntax for conditional templating:
+#        {@%key:value:string%@}
+#                  "key" is the key to match on.  This can be any of the values above that are supported by a format line.
+#                  "value" is the value of the key.
+#                  "string" is the string that WILL be shown if the key is value.
+# See default format lines below for examples.
+#
+# For existance checking:
+#        {e%key:string%e}
+#               "key" is the key to match on.  This can be any of the values above that are supported by a format line.
+#               "string" is the string that WILL be shown if the key exists AND its length is not 0.
+
+# Formatting of info displayed on !showinfo
+set tvrage(showInfoLine) "PRIVMSG {%%chan%%} :\00303Title ::\00315 \00304{%%show_name%%}\00315 \00308<>\00315 \00303URL ::\00315 \00304{%%show_url%%}\00315 \00308<>\00315 \00303Premiered ::\00315 \00304{%%premiered%%}\00315 \00308<>\00315 {%%latest%%} \00308<>\00315 {%%next%%} \00308<>\00315 \00303Country ::\00315 \00304{%%country%%}\00315 \00308<>\00315 \00303Status ::\00315 \00304{%%status%%}\00315{e%airtime: \00308<>\00315 \00303Airtime ::\00315 \00304{%%airtime%%}\00315%e}"
+
+# Formatting of next episode to air info displayed on !showinfo
+set tvrage(nextEpFormat) "\00303Next Episode ::\00315 \00304{%%nextSeason%%}{%%seasonEpisodeSeparator%%}{%%nextEpisode%%} - {%%nextTitle%%} ({%%nextDate%%})\00315"
+
+# Formatting when there is no episode that has not aired (ie: after a series ends or before new season episodes are announced)
+set tvrage(nextEpNoExistFormat) "\00303Next Episode ::\00315 \00304N/A\00315"
+
+# Formatting of last episode to air info displayed on !showinfo
+set tvrage(latestEpFormat) "\00303Latest Episode ::\00315 \00304{%%latestSeason%%}{%%seasonEpisodeSeparator%%}{%%latestEpisode%%} - {%%latestTitle%%} ({%%latestDate%%})\00315"
+
+# Formatting when no previous episode has aired (ie: before a show premieres)
+set tvrage(latestEpNoExistFormat) "\00303Latest Episode ::\00315 \00304N/A\00315"
+
+# Header to display before showing a schedule.  
+set tvrage(scheduleHeader) "PRIVMSG {%%chan%%} :\00303New TV Shows for {%%date%%} {@%country:GB:***All Times in BST***%@}{@%country:US:***All Times in EST/EDT***%@}{@%country:CA:***All Times in EST/EDT***%@}{@%country:AU:***All Times in ???***%@}\00315"
+
+# Format of the time display for each line in a schedule listing
+#set tvrage(scheduleTimeFormat) "\002{%%time%%}:\002 "
+set tvrage(scheduleTimeFormat) "\002{%%time%%}\002 - "
+
+# Format of a show in a schedule listing
+set tvrage(scheduleEpisodeFormat) "\00304{%%network%%}\00315 - \00314{%%show%%} {%%epnum%%}\00315 {%%scheduleShowSeparator%%} "
+
+# Separator between episodes in a schedule listing
+set tvrage(scheduleShowSeparator) "<>"
+
+# Format of a schedule Line (should be used primarily to change from a public message, to private message, etc)
+set tvrage(scheduleLine) "PRIVMSG {%%chan%%} :{%%scheduleLine%%}"
+
+# Format of info to show when !showinfo does not find the requested show
+set tvrage(noShowLine) "PRIVMSG {%%chan%%} :\00303No Show Results Were Found For \"\00315\00304{%%show_name%%}\00315\00303\"\00315"
+
+# Format of info to show when !summary finds a summary
+set tvrage(summaryLine) "PRIVMSG {%%chan%%} :\00303Show ::\00315 \00304{%%show_name%%}\00315 \00308<>\00315 \00303Episode ::\00315 \00304{%%epSeason%%}{%%seasonEpisodeSeparator%%}{%%epNumber%%} - {%%epTitle%%} ({%%epDate%%})\00315 \00308<>\00315 \00303Summary:\00315 \00304{%%summary%%}\00315 \00308<>\00315 \00303Episode URL ::\00315 \00304{%%episode_url%%}\00315"
+
+# Format of summary request invalid.
+set tvrage(summaryInvalidFormatLine) "PRIVMSG {%%chan%%} :\00303Invalid format \"\00315\00304{%%request%%}\00315\00303\"\00315"
+
+# What to show when no summary is available.
+set tvrage(noSummaryAvailable) "\00304No summary available.\00315"
+
+# Format of info to show on data from tvlog
+set tvrage(tvlogLine) "PRIVMSG {%%chan%%} :\00303Show ::\00315 \00304{%%show_name%%}\00315 \00308<>\00315 \00303Episode ::\00315 \00304{%%epSeason%%}{%%seasonEpisodeSeparator%%}{%%epNumber%%} - {%%epTitle%%} ({%%epDate%%})\00315 \00308<>\00315 \00303Summary:\00315 \00304{%%summary%%}\00315 \00308<>\00315 \00303Episode URL ::\00315 \00304{%%episode_url%%}\00315"
+
+# Format of info to show on data from tvlog when no info could be found.
+set tvrage(tvlogNoFoundLine) "PRIVMSG {%%chan%%} :\00303Information on \"\00315\00304{%%dirname%%}\00315\00303\" not found.\00315"
+
+# Format of error to show when an invalid country is specified
+set tvrage(invalidCountry) "PRIVMSG {%%chan%%} :\00303\"{%%country%%}\"\00315 \00304is an invalid country.\00315"
+
+# Format of message to show when a list of available countries are requested.
+set tvrage(availableCountriesLine) "PRIVMSG {%%chan%%} :\00304Available countries are:\00315 \00303{%%upperAvailableCountries%%}\00315"
+
+# Format of error to show when schedule for a date isn't cached.
+set tvrage(notCached) "PRIVMSG {%%chan%%} :\00304No schedule is cached for\00315 \00303{%%date%%}\00315"
+
+# Format of line to show when there are no new shows.
+set tvrage(noNewShows) "PRIVMSG {%%chan%%} :\00304No New shows for\00315 \00303{%%date%%}\00315"
+
+# Format of output for !tvhelp
+set tvrage(help) "PRIVMSG {%%nick%%} :{%%versionLine%%}
+{@%enableSchedule:1:{%%scheduleTrigger%%} <day> \[<country>\] -- Show schedule for <day>.  Day must be: mon, tue, wed, thu, fri, sat, sun.  Country is optional.  Valid countries are {%%upperAvailableCountries%%}.
+{%%todayTrigger%%} \[<country>\] -- Show schedule for today.  Country is optional.  Valid countries are {%%upperAvailableCountries%%}.
+{%%tomorrowTrigger%%} \[<country>\] -- Show schedule for tomorrow.  Country is optional.  Valid countries are {%%upperAvailableCountries%%}.
+{%%yesterdayTrigger%%} \[<country>\] -- Show schedule for yesterday.  Country is optional.  Valid countries are {%%upperAvailableCountries%%}.
+{%%primetimeTrigger%%} \[<day>\] \[<country>\] -- Show primetime schedule for <day> in <country>.  Country and day are optional.  Default day is today.
+{%%availableCountriesTrigger%%} -- List countries that are supported by schedules.
+{%%updateCacheTrigger%%} \[<country>\] -- Force an update of the cached schedule.%@}
+{@%enableShowInfo:1:{%%showinfoTrigger%%} <show> \[<country>\] -- Show info on <show>.  Country is optional.  Valid countries are {%%upperAvailableCountries%%}.%@}
+{@%enableSummary:1:{%%summaryTrigger%%} <show> <ep> -- Show summary of <ep> of <show>.  <ep> must be in the format of SeasonxEpisode (ie: 2x15 is Season 2 Episode 15).%@}
+{%%helpTrigger%%} -- Show this help."
+
+# Format of line to show for shows airing soon
+set tvrage(announceLine) "PRIVMSG {%%chan%%} :\00303Airing in\00315 \00304{%%minutesBefore%%}\00315 \00303minutes:\00315 {%%shows%%}"
+
+# Format of information to show for a given show when it is airing soon.
+set tvrage(announceShowsFormat) "\00304{%%network%%}\00315 - \00314{%%show%%} {%%epnum%%}\00315 {%%announceShowSeparator%%} "
+
+# Separator between shows that air soon.
+set tvrage(announceShowSeparator) "<>"
+
+# Format of error to display when an invalid !primetime syntax is used.
+set tvrage(invalidPrimetime) "PRIVMSG {%%chan%%} :\00303Invalid command format.\00315"

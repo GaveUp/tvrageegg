@@ -1,0 +1,210 @@
+-----------------------------------------
+| + added   - removed   * fixed/changed |                             
+-----------------------------------------
+
+2.0b5
+-----
+*Fixed bug introduced in 2.0b4 which caused
+ schedule lines to be built improperly.
+*Fixed bug causing changes to scheduleTimeFormat
+ to cause script to error out.
+ 
+2.0b4
+-----
+*Fixed error in the way schedule lines were
+ built which prevented a newline being used
+ as a seperator.
+
+2.0b3
+-----
+*Changed excludedNetworks variable name to
+ filteredNetworks.
++Added includeOnlyFiltered setting to change
+ the behavior have the filteredNetworks list.
+
+2.0b2
+-----
+*Fixed several bugs related to custom triggers.
+
+2.0b1
+-----
++Preliminary custom trigger support.  See Custom
+ Triggers section of README for more information.
+
+1.4
+---
+*Changed the way time since latest/until next episode
+ is calculated to handle shows that air multiple
+ times a week.
+*Updated URLs used in tvrage.conf.defaults to reflect
+the new URLs.
+
+1.3
+---
+*Fixed long standing memory leak. (hopefully)
+-Removed old debug statement that slipped through the 
+ cracks.
+*Fix bug in convertToSxEp method causing season to
+ be used for episode number.
+*Fixed showinfo failing when airtime was unknown.
+
+1.2
+---
++Added nextTimeUntil and latestTimeUntil template
+ settings to display the time until the next episode
+ airs and time since the last episode has aired,
+ respectively.
+
+1.1
+---
+*Quick fix to the summary parsing logic to strip out 
+ certain html tags.  Should be revisited and have a
+ proper HTML tag stripper added at a later point.
+
+1.0
+---
+*Removed die commands and replaced with putlog error
+ messages.
++Check for tcl version to determine if dict is needed or
+ not.
+
+1.0 RC2
+-------
++Added ability to display cached schedules that are more 
+ than 1 day old.  Use !schedule <number> where number is
+ a negative number.  -1 is yesterday, -2 two days ago,
+ etc.  Also works for positives numbers up to 6.  0 is
+ today.
+*Cleaned up and standardized the naming conventions for
+ procs.
++Added help information for !updatecache and !yesterday.
+*Changed Help templates to reduce required maintanence.
++Added ability to filter networks shown on schedules.
+*Modified debug proc to add support for varying levels
+ of output.
++Added debug level to print out an up to date list of 
+ placeholders for a given command.  See note in
+ default.theme for more information.
++Added announcement option.  To announce shows prior to
+ airing set a channel +tvannounce.  Currently limited
+ to the schedule for one country.
++Added timeout option to http calls to prevent hanging
+ of bot.
++Added !primetime trigger to only show shows airing
+ during a specified start time and end time.
+
+1.0 RC1
+-------
++Added existance checking to templating. See default.theme
+ for examples and documentation.
++Added support for caching schedules.  Cache is updated
+ daily or can be updated manually.
++Reorganized schedule code to make it more maintainable.
+ This change requires dict support.  See 
+ http://wiki.tcl.tk/5042 for information on setting up
+ dict support for Tcl 8.4.
+-Removed ncgi code/option.  It was unneeded.
++Added support for showing the previous day's schedule.
+*Updated summary retrieval code to deal with changes to
+ tvrage.com layout.
+*Redid code for retrieving show and episode information.
+ All information that may be added in the future as well as
+ currently exists should be supported.  Some template
+ triggers have changed as a result.  General formula for 
+ most triggers: 
+ {%%trait_in_lower_case_with_underscores_instead_of_spaces%%}
+*Fixed bug of only schedule header displaying in the event
+ there was no schedule information for a given date.
+
+0.9.1
+-----
+*Fixed bug in displaying {%%title%%} properly.
+
+0.9 
+--- 
+*Generalized way in which show info is pulled.  If a new 
+ feature is added by tvrage script should automatically
+ create a new tag.  Use {%%trait%%} where "trait" is
+ gotten from the quickinfo.php trait@traitValue.
+*Fixed 'extra space' at start of some lines.
++Added support for "Genres".
+*Fixed error in summary retrieval.
+*Fixed the help function.  Added calls and settings needed 
+ to document new features from previous version.           
++Added conditional elements to templating language.        
++Added option to bind to multiple triggers.                
++Split script into a multiple directory/file structure for
+ easier maintenance.
++Added themes support.  See default.theme for example.
+
+0.8 
+---
++Added gl-style log file parsing and autodisplay of        
+ summary. Set +tvlog on channels to display in.  Idea      
+ taken from bin-tv script.                                 
++Added a help trigger.                                     
++Added debug setting.  Useful for error reports.           
++Added support to schedule triggers for multiple           
+ countries.                                                
++Added options to enable/disable schedules and showinfo.   
+*Fixed bug in summary retreiving.                          
++Added debug setting and helper functions to make bug      
+ reporting easier.  Not all functions currently utilize    
+ this.  This will be corrected in a future version.        
++Added settings to change flags on binds.  This can be     
+ to only allow certain users to access commands.           
++Added support to format lines for splitting at an         
+ arbitrary place. Thanks to Fredgremlin for the code.      
++Added option to set triggers to public or private.        
+ Thanks to Fredgremlin for the idea.                       
+
+0.7 
+---
++Added wordwrap class to support wrapping of long lines.   
+ Thanks to user for posting code in the thread             
+ http://forum.egghelp.org/viewtopic.php?t=6690 which       
+ provided a base for the wordwrap function in this script. 
++Added !summary trigger to pull a summary for a given      
+ episode.  Usage: !summary <show title> <episode number>   
+ <episode number> must be in the format of WWxYY where WW  
+ is the season number and WW is the episode number.        
+*'Long Line' problem fixed with wordwrap code              
+*Fixed minor aesthetic and formatting issues               
+
+0.6 
+---
+*Patch to deal with non-displayable characters that caused 
+ crashes                                                   
++Added Templating Support to allow for customizing of      
+ output                                                    
++Moved hardcoded variables to global settings.  This will  
+ make it easier to deal with changes that might occur to   
+ the website info is pulled from                           
+
+0.5 
+---
+*Yet more regex tweaks                                     
+
+0.4 
+---
+*more tweaks to regex                                      
+*removed ncgi requirement                                  
+
+0.3 
+---
+*fixed last time of 7th day now displayed                  
+*tweaked regex to catch some programs it was missing        
+
+0.2 
+---
++!showinfo trigger for detailed show info and next/last ep 
++!schedule for 7 day schedule                              
+*fixed errors in various regex                             
+
+0.1 
+---
+Initial Release                                            
+                                                                  
+-----------------------------------------
+| + added   - removed   * fixed/changed |                             
+-----------------------------------------

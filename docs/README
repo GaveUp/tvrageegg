@@ -1,0 +1,52 @@
+tvrage.tcl    
+Coded By: GaveUp
+Official Thread: http://forum.egghelp.org/viewtopic.php?t=11208
+
+Description
+-----------
+This script pulls today's or tomorrow's schedule of new shows from tvrage.com 
+Triggers:                                                                     
+    !today [<country>] -- Display today's schedule                            
+    !tomorrow [<country>] -- Display tomorrow's schedule                      
+    !yesterday -- Display yesterday's schedule
+    !showinfo <show name> -- Display detailed information for <show name>     
+    !schedule <day> [<country>] -- Display schedule for <day>                 
+                       <day> can be one of: mon, tue, wed, thu, fri, sat, sun 
+    !summary <show> <episode> -- Display a summary for <episode> of <show>    
+    !help -- Show help.
+    !updatecache -- Manually update schedule cache.
+
+Installation Instructions
+-------------------------
+*Unzip the script to its own directory.
+*Add tvrage.tcl to your eggdrop conf.
+*For every channel you want the above commands to work on do a ".chanset <channel> +tv".
+*For every channel you want the gllogging to work on do a ".chanset <channel> +tvlog".
+
+Custom Triggers
+---------------
+There are three keys associated with creating a custom trigger: $tvrage(cTriggerX),
+$tvrage(cTemplateX), and $tvrage(TemplateX).  In these keys X is userdefined.  The
+only requirement is that it must match across all three keys.
+
+$tvrage(cTriggerX)  -- defines the text that will trigger the action.
+$tvrage(cTemplateX) -- defines the display format of the output.  The place holder
+                       variables available are the same as those for $tvrage(showInfoLine).
+$tvrage(cFlagsX)    -- specifies any flag modifiers for the trigger.  If this key does not 
+                       exist $tvrage(showinfoFlags) is used.
+
+
+Example:
+
+To create a trigger "!customTrigger" that displays a show's name you'd need to add the
+the following to your tvrage.conf:
+
+set tvrage(cTriggerCustom1) "!customTrigger"
+set tvrage(cTemplateCustom1) "PRIVMSG {%%chan%%} :{%%show_name%%}"
+
+For consistency $tvrage(cTemplateCustom1) really should exist in your theme file, but
+since custom triggers are custom to a specific setup and not to a theme the custom
+configuration file makes more sense.  Note, there is nothing preventing you from 
+putting $tvrage(cTemplateCustom1) in your theme file.  If submitting any themes to be
+included in the distribution package, though, please exclude and custom trigger 
+templates.
