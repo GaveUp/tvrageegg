@@ -4,7 +4,7 @@ if [info exists tvrage] {
    unset tvrage
 }
 
-set tvrage(version) "v2.0b5"
+set tvrage(version) "v2.0b6-dev"
 set tvrage(versionLine) "TVRage.com Primetime Schedule Script $tvrage(version)"
 set tvrage(scriptPath) [file dirname [info script]]
 
