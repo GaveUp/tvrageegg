@@ -385,12 +385,16 @@ proc getEpisodeInfo {showname ep} {
 
 	regsub -all "\n" $data "" data
 	regsub -all "<br>" $data "" data
-   if {[regexp "<table width=\'100%\'><tr><td>(.*?)&nbsp;</td></tr>" $data -> match]} { 
+
+	if {[regexp "</script></div><div>(.*?)</div>" $data -> match]} {
       regsub -all "<script .*?</script>" $match "" match
       regsub -all "<a .*?>" $match "" match
       regsub -all "</a>" $match "" match
       regsub -all "\\\[x\\\] Remove Ad" $match "" match
       regsub -all "<b>.*</b>" $match "" match
+		regsub -all "<span class='left'></span><span class=\"addthis_toolbox addthis_default_style \">.*$" $match "" match
+		set match [string trim $match]
+
       set show(summary) $match 
    }	
 
