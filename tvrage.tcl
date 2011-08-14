@@ -385,8 +385,15 @@ proc getEpisodeInfo {showname ep} {
 
 	regsub -all "\n" $data "" data
 	regsub -all "<br>" $data "" data
+	regsub -all "<\/?b>" $data "" data
+	regsub -all {Source\:.*?</div>} $data "</div>" data
 
-	if {[regexp "</script></div><div>(.*?)</div>" $data -> match]} {
+	set match {}
+	if {[regexp {<div class='show_synopsis'>(.*?)</div>} $data -> match]} {
+		set match [string trim $match]
+	}
+	
+	if {[string length $match] > 0 || [regexp "</script></div><div>(.*?)</div>" $data -> match]} { 
       regsub -all "<script .*?</script>" $match "" match
       regsub -all "<a .*?>" $match "" match
       regsub -all "</a>" $match "" match
@@ -394,7 +401,6 @@ proc getEpisodeInfo {showname ep} {
       regsub -all "<b>.*</b>" $match "" match
 		regsub -all "<span class='left'></span><span class=\"addthis_toolbox addthis_default_style \">.*$" $match "" match
 		set match [string trim $match]
-
       set show(summary) $match 
    }	
 
