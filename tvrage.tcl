@@ -805,12 +805,12 @@ proc announceShows {minute hour day month year} {
          }
 
          if {$include} {
-            set cLine [concat $cLine [templateParser $tvrage(announceShowsFormat) [array get data]]]
+				append cLine [string trimleft [templateParser $tvrage(announceShowsFormat) [array get data]]]
          }
       }
       
       if {[string length $cLine] > 0} {
-   	   set data(shows) [string trim $cLine $tvrage(announceShowSeparator)]
+			set data(shows) [string trim $cLine $tvrage(announceShowSeparator)]
          foreach data(chan) [channels] {
             if {[botonchan $data(chan)] && [channel get $data(chan) tvannounce]} {
       	   	displayInfo [templateParser $tvrage(announceLine) [array get data]]
