@@ -810,7 +810,9 @@ proc announceShows {minute hour day month year} {
       }
       
       if {[string length $cLine] > 0} {
-			set cLine [string replace $cLine [expr [string length $cLine] - [string length $tvrage(announceShowSeparator)] - 1] [string length $cLine]]
+			if {[string length $tvrage(announceShowSeparator)] > 0} {
+				set cLine [string replace $cLine [expr [string length $cLine] - [string length $tvrage(announceShowSeparator)] - 1] [string length $cLine]]
+			}
 			set data(shows) [string trim $cLine $tvrage(announceShowSeparator)]
          foreach data(chan) [channels] {
             if {[botonchan $data(chan)] && [channel get $data(chan) tvannounce]} {
