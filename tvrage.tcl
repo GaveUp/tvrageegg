@@ -350,7 +350,8 @@ proc displayInfo {text {prefix {}} {tosplit {}}} {
 proc getEpisodeInfo {showname ep} {
 	variable tvrage
 	upvar show show
-   if {[catch {set token [http::geturl [join [list $tvrage(showinfourl) "?show=" [parse:tvrage.com.encodeURL [string trimleft $showname]] "&ep=" [parse:tvrage.com.encodeURL [string trimleft $ep]]] ""] -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
+	set url $tvrage(showinfourl)[http::formatQuery {show} $showname {ep} $ep]
+   if {[catch {set token [http::geturl $url -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       debug ERROR "TVRage: ERROR: $error"
       return
    }
@@ -651,21 +652,11 @@ proc tomorrow {nick uhost hand chan text} {
    printSchedule $show(country) "1" $chan $nick
 }
 
-proc parse:tvrage.com.encodeURL {str} {
-	set str [string map {" " +} $str] 
-	foreach c [split $str {}] {
-	   if {$c == "+" || [string is alnum $c]} {append x $c} {
-	      binary scan $c H2 c; append x %$c
-	   }
-	} 
-
-	return $x
-}
-
 proc getShowInfo {text} {
 	variable tvrage
 	upvar show show
-	if {[catch {set token [http::geturl [join [list $tvrage(showinfourl) "?show=" [parse:tvrage.com.encodeURL [string trimleft $text]]] ""] -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
+	set url $tvrage(showinfourl)[http::formatQuery {show} [string trimleft $text]]
+	if {[catch {set token [http::geturl $url -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       debug ERROR "TVRage: ERROR: $error"
       return
    }
@@ -963,7 +954,8 @@ proc calculateDate {when} {
 proc getSchedule {country} {
    variable tvrage 
    variable schedule
-   if {[catch {set token [http::geturl [join [list $tvrage(scheduleurl) $country] ""] -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
+	set queryurl $tvrage(scheduleurl)[http::formatQuery {country} $country]
+   if {[catch {set token [http::geturl $queryurl -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       debug ERROR "TVRage: ERROR: $error"
       return
    }

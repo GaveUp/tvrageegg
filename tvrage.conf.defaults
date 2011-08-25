@@ -105,12 +105,11 @@ set tvrage(availableCountries) "US CA GB AU"
 
 # URL to grab schedule from
 # Do NOT change this unless you know what you're doing
-#set tvrage(scheduleurl) "http://www.tvrage.com/quickschedule.php?country="
-set tvrage(scheduleurl) "http://services.tvrage.com/tools/quickschedule.php?country="
+set tvrage(scheduleurl) "http://services.tvrage.com/tools/quickschedule.php?"
 
 # URL to grab show info from
 # Do NOT change this unless you know what you're doing
-set tvrage(showinfourl) "http://services.tvrage.com/tools/quickinfo.php"
+set tvrage(showinfourl) "http://services.tvrage.com/tools/quickinfo.php?"
 
 # Debug?
 set tvrage(debug) INFO
