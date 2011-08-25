@@ -59,6 +59,7 @@ set tvrage(seasonEpisodeSeparator) "x"
 #        {%%latestTimeUntil%%} -- Shows how many months/days/hours/minutes/seconds there are since the last episode aired.
 #                                 Requires that $tvrage(offsetHours) be set properly in your conf file to get an accurate
 #                                 number.
+#        {%%problem%%} -- Description of an error if one occurs.
 #
 # Syntax for conditional templating:
 #        {@%key:value:string%@}
@@ -157,3 +158,6 @@ set tvrage(announceShowSeparator) "<>"
 
 # Format of error to display when an invalid !primetime syntax is used.
 set tvrage(invalidPrimetime) "PRIVMSG {%%chan%%} :\00303Invalid command format.\00315"
+
+# Format of message to display when an error occurs
+set tvrage(problemMessage) "PRIVMSG {%%chan%%} :\00303{%%problem%%}\00315"

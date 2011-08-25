@@ -250,7 +250,10 @@ proc getInfo {info} {
 	regsub -all -- {\_} $title " " title
 	set sxep [convertToSxEp $season $episode]
 	
-	getEpisodeInfo $title $sxep
+	if [catch {getEpisodeInfo $title $sxep} problem] {
+		debug ERROR "TVRage: ERROR: $problem"
+		set show(problem) $problem
+	}
 
    foreach chan [channels] {
 		if {[channel get $chan tvlog] && [botonchan $chan]} {
@@ -350,11 +353,19 @@ proc displayInfo {text {prefix {}} {tosplit {}}} {
 proc getEpisodeInfo {showname ep} {
 	variable tvrage
 	upvar show show
+	set show(found) 0
 	set url $tvrage(showinfourl)[http::formatQuery {show} $showname {ep} $ep]
    if {[catch {set token [http::geturl $url -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
-      debug ERROR "TVRage: ERROR: $error"
-      return
+		error $error
    }
+
+	if { [http::status $token] == "timeout" } {
+      error "Timeout retrieving show info."
+	} elseif { [http::status $token] != "ok" } {
+		set problem [http::error $token]
+		[http::cleanup $token]
+		error $problem
+	}
    set data [http::data $token]
    http::cleanup $token
 
@@ -378,8 +389,7 @@ proc getEpisodeInfo {showname ep} {
 	}
 
 	if {[catch {set token [http::geturl $show(episode_url) -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
-      debug ERROR "TVRage: ERROR: $error"
-      return
+		error $error
    }
 	set data [http::data $token]
 	http::cleanup $token
@@ -424,7 +434,10 @@ proc getSummary {nick uhost hand chan text} {
 		return
 	}
 	
-   getEpisodeInfo $showname $ep
+	if [catch {getEpisodeInfo $showname $ep} problem] {
+		debug ERROR "TVRage: ERROR: $problem"
+		set show(problem) $problem
+	}
   
    if {$show(found)} {
 		displayInfo [templateParser $tvrage(summaryLine) [array get show]]
@@ -657,9 +670,17 @@ proc getShowInfo {text} {
 	upvar show show
 	set url $tvrage(showinfourl)[http::formatQuery {show} [string trimleft $text]]
 	if {[catch {set token [http::geturl $url -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
-      debug ERROR "TVRage: ERROR: $error"
-      return
+      error $error
    }
+
+	if { [http::status $token] == "timeout" } {
+      error "Timeout retrieving show info."
+	} elseif { [http::status $token] != "ok" } {
+		set problem [http::error $token]
+		[http::cleanup $token]
+		error $problem
+	}
+
 	set data [http::data $token]
 	http::cleanup $token
 
@@ -735,8 +756,13 @@ proc showinfo {displayLine nick uhost hand chan text} {
 
 	set show(chan) $chan
 	set show(nick) $nick
-	
-	getShowInfo $text
+
+	if [catch {getShowInfo $text} problem] {
+		debug ERROR "TVRage: ERROR: $problem"
+		set show(problem) $problem
+		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
+		return
+	}
 
 	set show(seasonEpisodeSeparator) $tvrage(seasonEpisodeSeparator)
    
