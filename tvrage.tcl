@@ -665,20 +665,50 @@ proc tomorrow {nick uhost hand chan text} {
    printSchedule $show(country) "1" $chan $nick
 }
 
-proc getShowInfo {text} {
+proc getShowInfo {displayLine nick chan text} {
 	variable tvrage
+	variable request
 	upvar show show
 	set url $tvrage(showinfourl)[http::formatQuery {show} [string trimleft $text]]
-	if {[catch {set token [http::geturl $url -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
+	if {[catch {set token [http::geturl $url -command [namespace current]::getShowInfoHandler -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       error $error
-   }
+   } else {
+		set request($token,nick) $nick
+		set request($token,chan) $chan
+		set request($token,displayLine) $displayLine
+	}
+}
+
+proc cleanupRequest {token} {
+	variable request
+	unset request($token,nick)
+	unset request($token,chan)
+	unset request($token,displayLine)
+}
+
+proc getShowInfoHandler {token} {
+	variable tvrage
+	variable request
+
+	set show(chan) $request($token,chan)
+	set show(nick) $request($token,nick)
+	set displayLine $request($token,displayLine)
 
 	if { [http::status $token] == "timeout" } {
-      error "Timeout retrieving show info."
+		set problem "Timeout retrieving show info."
+		debug ERROR "TVRage: ERROR: $problem"
+		set show(problem) $problem
+		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
+		cleanupRequest $token
+		return
 	} elseif { [http::status $token] != "ok" } {
 		set problem [http::error $token]
 		[http::cleanup $token]
-		error $problem
+		debug ERROR "TVRage: ERROR: $problem"
+		set show(problem) $problem
+		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
+		cleanupRequest $token
+		return
 	}
 
 	set data [http::data $token]
@@ -703,12 +733,12 @@ proc getShowInfo {text} {
 			set show(nextEpisode) $episode
 			set show(nextDate) $epDate
 			set show(nextSeparator) $tvrage(seasonEpisodeSeparator)
-      } else {
-         if {[regexp {^(.*)@(.*)$} $line -> trait tValue]} { 
-            set trait [string map {{ } {_}} $trait]
-            set show([string tolower $trait]) $tValue 
-         }
-      }
+		} else {
+			if {[regexp {^(.*)@(.*)$} $line -> trait tValue]} { 
+				set trait [string map {{ } {_}} $trait]
+				set show([string tolower $trait]) $tValue 
+			}
+		}
 	}
 
 	if ![info exist show(latest)] { 
@@ -719,14 +749,14 @@ proc getShowInfo {text} {
 		set show(latestDate) ""
 		set show(latestSeparator) ""
 	} else {
-      if ![info exist show(airtime)] {
-         set show(latestTimeUntil) [calculateTimeUntil [concat $show(latestDate)  "12:00 am"]]
-      } else {
-         if [catch {set show(latestTimeUntil) [calculateTimeUntil [concat $show(latestDate)  [concat [expr [string trimleft [lindex [split [lindex [split $show(airtime)] 2] {:}] 0] 0] - $tvrage(offsetHours)] ":" [lindex [split [lindex [split $show(airtime)] 2] {:}] 1]] [lindex [split $show(airtime)] 3]]]} error] {
-            set show(latestTimeUntil) "Calculation Failed."
-         }
-      }
-   }
+		if ![info exist show(airtime)] {
+			set show(latestTimeUntil) [calculateTimeUntil [concat $show(latestDate)  "12:00 am"]]
+		} else {
+			if [catch {set show(latestTimeUntil) [calculateTimeUntil [concat $show(latestDate)  [concat [expr [string trimleft [lindex [split [lindex [split $show(airtime)] 2] {:}] 0] 0] - $tvrage(offsetHours)] ":" [lindex [split [lindex [split $show(airtime)] 2] {:}] 1]] [lindex [split $show(airtime)] 3]]]} error] {
+				set show(latestTimeUntil) "Calculation Failed."
+			}
+		}
+	}
 
 	if ![info exist show(next)] { 
 		set show(next) 0
@@ -735,37 +765,21 @@ proc getShowInfo {text} {
 		set show(nextEpisode) "N/A"
 		set show(nextDate) ""
 		set show(nextSeparator) ""
-      set show(nextTimeUntil) ""
+		set show(nextTimeUntil) ""
 	} else {
-      if ![info exist show(airtime)] {
-         set show(nextTimeUntil) [calculateTimeUntil [concat $show(nextDate)  "12:00 am"]]
-      } else {
-         if [catch {set show(nextTimeUntil) [calculateTimeUntil [concat $show(nextDate)  [concat [expr [string trimleft [lindex [split [lindex [split $show(airtime)] 2] {:}] 0] 0] - $tvrage(offsetHours)] ":" [lindex [split [lindex [split $show(airtime)] 2] {:}] 1]] [lindex [split $show(airtime)] 3]]]} error] {
-            set show(nextTimeUntil) "Calculation Failed."
-         }
-      }
-   }
-
-	set show(found) 1
-}
-
-proc showinfo {displayLine nick uhost hand chan text} {
-	variable tvrage
-
-   if ![channel get $chan tv] return
-
-	set show(chan) $chan
-	set show(nick) $nick
-
-	if [catch {getShowInfo $text} problem] {
-		debug ERROR "TVRage: ERROR: $problem"
-		set show(problem) $problem
-		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
-		return
+		if ![info exist show(airtime)] {
+			set show(nextTimeUntil) [calculateTimeUntil [concat $show(nextDate)  "12:00 am"]]
+		} else {
+			if [catch {set show(nextTimeUntil) [calculateTimeUntil [concat $show(nextDate)  [concat [expr [string trimleft [lindex [split [lindex [split $show(airtime)] 2] {:}] 0] 0] - $tvrage(offsetHours)] ":" [lindex [split [lindex [split $show(airtime)] 2] {:}] 1]] [lindex [split $show(airtime)] 3]]]} error] {
+				set show(nextTimeUntil) "Calculation Failed."
+			}
+		}
 	}
 
+	set show(found) 1
+
 	set show(seasonEpisodeSeparator) $tvrage(seasonEpisodeSeparator)
-   
+
 	if {!$show(found)} {
 		displayInfo [templateParser $tvrage(noShowLine) [array get show]]
 		return
@@ -784,12 +798,26 @@ proc showinfo {displayLine nick uhost hand chan text} {
 	}
 
 	displayInfo [templateParser $tvrage($displayLine) [array get show]]
+
+	cleanupRequest $token
 }
-		
+
+proc showinfo {displayLine nick uhost hand chan text} {
+	variable tvrage
+
+   if ![channel get $chan tv] return
+
+	if [catch {getShowInfo $displayLine $nick $chan $text} problem] {
+		debug ERROR "TVRage: ERROR: $problem"
+		set show(problem) $problem
+		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
+	}
+}
+
 proc announceShows {minute hour day month year} {
    variable tvrage
    variable schedule
-   
+
    set time [expr [clock seconds] + $tvrage(minutesBefore) * 60 + $tvrage(offsetHours) * 3600]
 
    set cDate [clock format [expr $time - $tvrage(fudgeMinutes) * 60] -format "%A, %d %b %Y"]
@@ -804,7 +832,7 @@ proc announceShows {minute hour day month year} {
          foreach k [dict keys $s] {
             set data($k) [dict get $s $k]
          }
-          
+
          if {$tvrage(includeOnlyFiltered)} {
             set include 0
             foreach n $tvrage(filteredNetworks) {
@@ -825,7 +853,7 @@ proc announceShows {minute hour day month year} {
 				append cLine [string trimleft [templateParser $tvrage(announceShowsFormat) [array get data]]]
          }
       }
-      
+
       if {[string length $cLine] > 0} {
 			if {[string length $tvrage(announceShowSeparator)] > 0} {
 				set cLine [string replace $cLine [expr [string length $cLine] - [string length $tvrage(announceShowSeparator)] - 1] [string length $cLine]]
