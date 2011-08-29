@@ -4,9 +4,14 @@ if [info exists tvrage] {
    unset tvrage
 }
 
-set tvrage(version) "v2.0b6-dev"
-set tvrage(versionLine) "TVRage.com Primetime Schedule Script $tvrage(version)"
 set tvrage(scriptPath) [file dirname [info script]]
+
+if {[catch {exec /bin/sh -c "cd $tvrage(scriptPath) && git describe"} results]} {
+	set tvrage(version) "v2.0b6-dev"
+} else {
+	set tvrage(version) $results
+}
+set tvrage(versionLine) "TVRage.com Primetime Schedule Script $tvrage(version)"
 
 putlog "Loading $tvrage(versionLine)"
 
