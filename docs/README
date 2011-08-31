@@ -23,6 +23,7 @@ Installation Instructions
 *Add tvrage.tcl to your eggdrop conf.
 *For every channel you want the above commands to work on do a ".chanset <channel> +tv".
 *For every channel you want the gllogging to work on do a ".chanset <channel> +tvlog".
+*For every channel you want to announce upcoming shows on do a ".chanset <channel> +tvannounce".
 
 Custom Triggers
 ---------------

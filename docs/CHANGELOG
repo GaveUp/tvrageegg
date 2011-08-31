@@ -1,6 +1,19 @@
 -----------------------------------------
-| + added   - removed   * fixed/changed |                             
+| + added   - removed   * fixed/changed |
 -----------------------------------------
+
+*Fix summary parsing broke by tvrage format
+ change.
+*Fix bug causing multiline announce theme
+ settings to not work as expected.
+*Change geturl calls to use formatQuery instead
+ of custom sanitize proc.
++Add error message that is displayed when there
+ is an error get show info.
+*Change showinfo geturl calls to asynchronous
+ calls.
+*Change schedule caching geturl calls to
+ asynchronous calls.
 
 2.0b5
 -----
