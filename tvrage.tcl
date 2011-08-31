@@ -20,12 +20,18 @@ if {[catch {package require http} error]} {
    return
 }
 
+if {[catch {package require struct::stack} error]} {
+   putlog "tvrage.tcl error: struct::stack required."
+   return
+}
+
 if {$tcl_version < "8.5"} {
    if {[catch {package require dict} error]} {
       putlog "tvrage.tcl error: dict required."
       return
    }
 }
+
 
 if {[catch {source $tvrage(scriptPath)/includes/tvrage.datediff.tcl} error]} {
    putlog "tvrage.tcl error: Unable to load tvrage.datediff.tcl ($error), cannot continue."
@@ -145,14 +151,14 @@ proc setupCustomTriggers {} {
       } else {
          set cFlags ""
          if {![info exists tvrage($cFlagsName)]} {
-            debug INFO "INFO: No Flags defined for $cTrigger.  Using showinfoFlags ($tvrage(showinfoFlags))."
+            debug INFO "No Flags defined for $cTrigger.  Using showinfoFlags ($tvrage(showinfoFlags))."
             set cFlags $tvrage(showinfoFlags)
          } else {
             set cFlags $tvrage($cFlagsName)
          }
 
          foreach trigger [split $tvrage($cTrigger) " "] {
-            debug INFO "INFO: Adding Custom Trigger: $trigger"
+            debug INFO "Adding Custom Trigger: $trigger"
             bind $tvrage(triggerType) $cFlags $trigger [list [namespace current]::showinfo $cTemplateName]
          }
       }
@@ -256,7 +262,7 @@ proc getInfo {info} {
 	set sxep [convertToSxEp $season $episode]
 	
 	if [catch {getEpisodeInfo $title $sxep} problem] {
-		debug ERROR "TVRage: ERROR: $problem"
+		debug ERROR "$problem"
 		set show(problem) $problem
 	}
 
@@ -305,7 +311,7 @@ proc debug {level lines} {
 
    if {$l <= $dl} {
       foreach line [split $lines "\n"] {
-         putlog "TVRage: $line"
+         putlog "TVRage($level): $line"
       }
    }
 }
@@ -440,7 +446,7 @@ proc getSummary {nick uhost hand chan text} {
 	}
 	
 	if [catch {getEpisodeInfo $showname $ep} problem] {
-		debug ERROR "TVRage: ERROR: $problem"
+		debug ERROR "$problem"
 		set show(problem) $problem
 	}
   
@@ -701,7 +707,7 @@ proc getShowInfoHandler {token} {
 
 	if { [http::status $token] == "timeout" } {
 		set problem "Timeout retrieving show info."
-		debug ERROR "TVRage: ERROR: $problem"
+		debug ERROR "$problem"
 		set show(problem) $problem
 		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
 		cleanupRequest $token
@@ -709,7 +715,7 @@ proc getShowInfoHandler {token} {
 	} elseif { [http::status $token] != "ok" } {
 		set problem [http::error $token]
 		[http::cleanup $token]
-		debug ERROR "TVRage: ERROR: $problem"
+		debug ERROR "$problem"
 		set show(problem) $problem
 		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
 		cleanupRequest $token
@@ -813,7 +819,7 @@ proc showinfo {displayLine nick uhost hand chan text} {
    if ![channel get $chan tv] return
 
 	if [catch {getShowInfo $displayLine $nick $chan $text} problem] {
-		debug ERROR "TVRage: ERROR: $problem"
+		debug ERROR "$problem"
 		set show(problem) $problem
 		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
 	}
@@ -822,6 +828,7 @@ proc showinfo {displayLine nick uhost hand chan text} {
 proc announceShows {minute hour day month year} {
    variable tvrage
    variable schedule
+	variable countries
 
    set time [expr [clock seconds] + $tvrage(minutesBefore) * 60 + $tvrage(offsetHours) * 3600]
 
@@ -829,6 +836,15 @@ proc announceShows {minute hour day month year} {
    set cTime [string tolower [clock format $time -format "%I:%M %p"]]
    set data(announceShowSeparator) $tvrage(announceShowSeparator)
    set data(minutesBefore) $tvrage(minutesBefore)
+
+	if {![info exists schedule($tvrage(announceCountry):schedule)]} {
+		if { [countries size] != 0 } {
+			debug INFO "Schedule caching in progress"
+		} else {
+			debug INFO "Can't announce shows.  Invalid \$tvrage(announceCountry) setting."
+		}
+		return
+	}
 
    if {[dict exists $schedule($tvrage(announceCountry):schedule) $cDate $cTime]} {
       set cLine {}
@@ -896,9 +912,9 @@ proc updateCache {m h d mo y} {
             }
          }
       }
- 
-      getSchedule $c
    }
+
+	getSchedules 1
 }
 
 proc printSchedule {country when chan nick {startTime {}} {endTime {}}} {
@@ -1010,16 +1026,53 @@ proc calculateDate {when} {
    return $neededDate
 }
 
-proc getSchedule {country} {
+proc getSchedules {isNew} {
+   variable tvrage 
+	variable request
+
+	if {[catch {variable [struct::stack countries]} msg]} {
+		debug DEBUG "Stack already exists"
+	}
+
+	if {$isNew && [countries size] != 0} {
+		debug INFO "Cache is in process of being updated."
+		return
+	}
+
+	if {[countries size] == 0} {
+		foreach country [split $tvrage(availableCountries) " "] {
+			countries push $country
+		}
+	}
+
+	set country [countries pop]
+	set queryurl $tvrage(scheduleurl)[http::formatQuery {country} $country]
+   if {[catch {set token [http::geturl $queryurl -command [namespace current]::getSchedulesHandler -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
+      debug ERROR "$error"
+		if {[countries size] != 0} {
+			getSchedules 0
+		} else {
+      	return
+		}
+   } else {
+		set request($token:country) $country
+	}
+
+	if {[countries size] == 0} {
+		debug INFO "Finished schedule caching."
+	}
+}
+
+proc getSchedulesHandler {token} {
    variable tvrage 
    variable schedule
-	set queryurl $tvrage(scheduleurl)[http::formatQuery {country} $country]
-   if {[catch {set token [http::geturl $queryurl -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
-      debug ERROR "TVRage: ERROR: $error"
-      return
-   }
+	variable countries
+	variable request
+
    set data [http::data $token]
    http::cleanup $token
+
+	set country $request($token:country)
 
    if {![info exists schedule($country:dates)]} { set schedule($country:dates) {} }
    if {![info exists schedule($country:times)]} { set schedule($country:times) {} }
@@ -1044,6 +1097,12 @@ proc getSchedule {country} {
          }
       }
    }
+
+	unset request($token:country)
+
+	if {[countries size] != 0} {
+		getSchedules 0
+	}
 }
 
 init
