@@ -1075,6 +1075,8 @@ proc getSchedulesHandler {token} {
 	variable countries
 	variable request
 
+	set country $request($token:country)
+
 	if { [http::status $token] == "timeout" } {
       debug ERROR "Timeout caching $request($token:country) schedule."
 		unset request($token:country)
@@ -1110,7 +1112,6 @@ proc getSchedulesHandler {token} {
 	debug DEBUG "Cleaning up http."
    http::cleanup $token
 
-	set country $request($token:country)
 	debug DEBUG "Processing schedule data for $country."
 
    if {![info exists schedule($country:dates)]} { set schedule($country:dates) {} }
