@@ -119,6 +119,12 @@ array set schedule {}
 
 proc init {} {
 	variable tvrage
+	variable countries
+
+	if {![catch {countries size} msg]} {
+		debug DEBUG "Destroying countries cache from before rehash."
+		countries destroy
+	}
 
 	if {[info exists tvrage(tvlogTimer)]} {
 		if {[catch { killutimer $tvrage(tvlogTimer) } message] } {
