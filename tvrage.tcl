@@ -1049,18 +1049,18 @@ proc getSchedules {isNew} {
 	if {[countries size] == 0} {
 		debug DEBUG "Building Countries Stack."
 		foreach country [split $tvrage(availableCountries) " "] {
-			countries push $country
+			countries put $country
 		}
 	}
 
-	set country [countries pop]
+	set country [countries get]
 	set queryurl $tvrage(scheduleurl)[http::formatQuery {country} $country]
 	debug DEBUG "Getting schedule from $queryurl"
    if {[catch {set token [http::geturl $queryurl -command [namespace current]::getSchedulesHandler -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       debug ERROR "$error"
 		if {[countries size] != 0} {
 			debug DEBUG "Processing next country: [countries peek]"
-			countries push $country
+			countries put $country
 			getSchedules 0
 		}
 	} else {
@@ -1085,7 +1085,7 @@ proc getSchedulesHandler {token} {
 		debug DEBUG "Cleaned up http."
 		if {[countries size] != 0} {
 			debug DEBUG "Add country back to end of queue. [countries size] schedules left to cache."
-			countries push $country
+			countries put $country
 			debug DEBUG "Processing Next Country: [countries peek]"
 			getSchedules 0
 		} else {
@@ -1097,7 +1097,7 @@ proc getSchedulesHandler {token} {
 		unset request($token:country)
 		[http::cleanup $token]
 		if {[countries size] != 0} {
-			countries push $country
+			countries put $country
 			debug DEBUG "Processing Next Country: [countries peek]"
 			getSchedules 0
 		} else {
