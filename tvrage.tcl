@@ -20,8 +20,8 @@ if {[catch {package require http} error]} {
    return
 }
 
-if {[catch {package require struct::stack} error]} {
-   putlog "tvrage.tcl error: struct::stack required."
+if {[catch {package require struct::queue} error]} {
+   putlog "tvrage.tcl error: struct::queue required."
    return
 }
 
@@ -1030,16 +1030,17 @@ proc getSchedules {isNew} {
    variable tvrage 
 	variable request
 
-	if {[catch {variable [struct::stack countries]} msg]} {
-		debug DEBUG "Stack already exists"
-	}
+	if {[catch {variable [struct::queue countries]} msg]} {}
 
 	if {$isNew && [countries size] != 0} {
-		debug INFO "Cache is in process of being updated."
+		debug DEBUG "Cache is in process of being updated."
 		return
+	} elseif {$isNew} {
+		debug DEBUG "Starting schedule (re)caching."
 	}
 
 	if {[countries size] == 0} {
+		debug DEBUG "Building Countries Stack."
 		foreach country [split $tvrage(availableCountries) " "] {
 			countries push $country
 		}
@@ -1047,20 +1048,18 @@ proc getSchedules {isNew} {
 
 	set country [countries pop]
 	set queryurl $tvrage(scheduleurl)[http::formatQuery {country} $country]
+	debug DEBUG "Getting schedule from $queryurl"
    if {[catch {set token [http::geturl $queryurl -command [namespace current]::getSchedulesHandler -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       debug ERROR "$error"
 		if {[countries size] != 0} {
+			debug DEBUG "Processing next country: [countries peek]"
+			countries push $country
 			getSchedules 0
-		} else {
-      	return
 		}
-   } else {
+	} else {
 		set request($token:country) $country
 	}
 
-	if {[countries size] == 0} {
-		debug INFO "Finished schedule caching."
-	}
 }
 
 proc getSchedulesHandler {token} {
@@ -1069,10 +1068,32 @@ proc getSchedulesHandler {token} {
 	variable countries
 	variable request
 
+	if { [http::status $token] == "timeout" } {
+      debug ERROR "Timeout caching $request($token:country) schedule."
+		unset request($token:country)
+		if {[countries size] != 0} {
+			countries push $country
+			debug DEBUG "Processing Next Country: [countries peek]"
+			getSchedules 0
+		} else {
+			debug INFO "Finished schedule caching."
+		}
+	} elseif { [http::status $token] != "ok" } {
+		debug ERROR [http::error $token]
+		unset request($token:country)
+		if {[countries size] != 0} {
+			countries push $country
+			debug DEBUG "Processing Next Country: [countries peek]"
+			getSchedules 0
+		} else {
+			debug INFO "Finished schedule caching."
+		}
+	}
    set data [http::data $token]
    http::cleanup $token
 
 	set country $request($token:country)
+	debug DEBUG "Processing schedule data for $country."
 
    if {![info exists schedule($country:dates)]} { set schedule($country:dates) {} }
    if {![info exists schedule($country:times)]} { set schedule($country:times) {} }
@@ -1101,9 +1122,18 @@ proc getSchedulesHandler {token} {
 	unset request($token:country)
 
 	if {[countries size] != 0} {
+		debug DEBUG "Processing Next Country: [countries peek]"
 		getSchedules 0
+	} else {
+		debug INFO "Finished schedule caching."
 	}
 }
+
+proc checkCountries {m h d mo y} {
+	variable countries
+	debug DEBUG "Countries contains [countries size] elements."
+}
+bind time - "?0 * * * *" [namespace current]::checkCountries
 
 init
 putlog "Successfully loaded $tvrage(versionLine)"
