@@ -908,6 +908,8 @@ proc updateCache {m h d mo y} {
    set now [clock scan [clock format [clock seconds] -format "%m/%d/%y"]]
    set old [expr ($now - ($tvrage(cacheForDays) * 86400))]
 
+	debug INFO "Beginning refresh of schedule cache."
+
    foreach c [split $tvrage(availableCountries)] {
       if {[info exists schedule($c:dates)]} {
          set upd ""
