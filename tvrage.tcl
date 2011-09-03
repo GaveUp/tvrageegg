@@ -744,6 +744,11 @@ proc getShowInfoHandler {token} {
 			set show(nextEpisode) $episode
 			set show(nextDate) $epDate
 			set show(nextSeparator) $tvrage(seasonEpisodeSeparator)
+		} elseif {[regexp {^Ended@((\w+)\/(\d+)\/(\d+))$} $line -> full month day year]} {
+			set show(ended) $full
+			set show(endedmonth) $month
+			set show(endedday) $day
+			set show(endedyear) $year
 		} else {
 			if {[regexp {^(.*)@(.*)$} $line -> trait tValue]} { 
 				set trait [string map {{ } {_}} $trait]
