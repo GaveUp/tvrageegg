@@ -371,6 +371,7 @@ proc getEpisodeInfo {showname ep} {
    }
 
 	if { [http::status $token] == "timeout" } {
+		[http::cleanup $token]
       error "Timeout retrieving show info."
 	} elseif { [http::status $token] != "ok" } {
 		set problem [http::error $token]
@@ -711,6 +712,7 @@ proc getShowInfoHandler {token} {
 		set show(problem) $problem
 		displayInfo [templateParser $tvrage(problemMessage) [array get show]]
 		cleanupRequest $token
+		[http::cleanup $token]
 		return
 	} elseif { [http::status $token] != "ok" } {
 		set problem [http::error $token]
@@ -1076,16 +1078,24 @@ proc getSchedulesHandler {token} {
 	if { [http::status $token] == "timeout" } {
       debug ERROR "Timeout caching $request($token:country) schedule."
 		unset request($token:country)
+		debug DEBUG "Cleanup http."
+		if {[catch {http::cleanup $token} msg]} {
+			debug ERROR "Failed to clean up http: $msg"
+		}
+		debug DEBUG "Cleaned up http."
 		if {[countries size] != 0} {
+			debug DEBUG "Add country back to end of queue. [countries size] schedules left to cache."
 			countries push $country
 			debug DEBUG "Processing Next Country: [countries peek]"
 			getSchedules 0
 		} else {
 			debug INFO "Finished schedule caching."
 		}
+		return
 	} elseif { [http::status $token] != "ok" } {
 		debug ERROR [http::error $token]
 		unset request($token:country)
+		[http::cleanup $token]
 		if {[countries size] != 0} {
 			countries push $country
 			debug DEBUG "Processing Next Country: [countries peek]"
@@ -1093,8 +1103,11 @@ proc getSchedulesHandler {token} {
 		} else {
 			debug INFO "Finished schedule caching."
 		}
+		return
 	}
+	debug DEBUG "Retrieving schedule data."
    set data [http::data $token]
+	debug DEBUG "Cleaning up http."
    http::cleanup $token
 
 	set country $request($token:country)
