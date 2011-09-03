@@ -69,9 +69,10 @@ set tvrage(seasonEpisodeSeparator) "x"
 # See default format lines below for examples.
 #
 # For existance checking:
-#        {e%key:string%e}
+#        {e%key:string%e} or {e%key:(string):(default)%e}
 #               "key" is the key to match on.  This can be any of the values above that are supported by a format line.
 #               "string" is the string that WILL be shown if the key exists AND its length is not 0.
+#               "default" is the string that WILL be shown if the key does NOT exist or its length is 0.
 
 # Formatting of info displayed on !showinfo
 set tvrage(showInfoLine) "PRIVMSG {%%chan%%} :\00303Title ::\00315 \00304{%%show_name%%}\00315 \00308<>\00315 \00303URL ::\00315 \00304{%%show_url%%}\00315 \00308<>\00315 \00303Premiered ::\00315 \00304{%%premiered%%}\00315 \00308<>\00315 {%%latest%%} \00308<>\00315 {%%next%%} \00308<>\00315 \00303Country ::\00315 \00304{%%country%%}\00315 \00308<>\00315 \00303Status ::\00315 \00304{%%status%%}\00315{e%airtime: \00308<>\00315 \00303Airtime ::\00315 \00304{%%airtime%%}\00315%e}"

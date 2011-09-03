@@ -16,6 +16,8 @@
  asynchronous calls.
 +Add endedyear, endedmonth, and endedday 
  options for show info.
++Add ability to do "not exists" conditionals
+ in templates.
 
 2.0b5
 -----

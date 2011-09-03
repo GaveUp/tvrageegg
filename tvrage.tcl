@@ -468,6 +468,8 @@ proc templateParser {template info} {
 	set filled $template
    array set show $info
 
+	debug DEBUG "Processing Conditional Tags"
+	debug DEBUG "Search Line: $filled"
    while {[regexp "(\{\@\%(.*?):(.*?):(.*?)\%\@\})" $filled -> fpattern key value str]} {
       if {[string toupper $show($key)] == [string toupper $value]} { 
          set filled [string map [list "$fpattern" "$str"] $filled]
@@ -476,18 +478,27 @@ proc templateParser {template info} {
       }
    }
 
-   while {[regexp "(\{\e\%(.*?):(.*?)\%\e\})" $filled -> fpattern key str]} {
+	debug DEBUG "Processing Existence Tags"
+	debug DEBUG "Search Line: $filled"
+   while {[regexp "(\{e\%(.*?):(?:(?:\\((.*?)\\)):(?:\\((.*?)\\))|(.*?))\%e\})" $filled -> fpattern key str def other]} {
+		putlog "$fpattern :::: $key :::: $str :::: $def :::: $other"
       if {[info exists show($key)]} {
          if {[string length $show($key)] > 0} {
-            set filled [string map [list "$fpattern" "$str"] $filled]
+				if {[string length $other] > 0} {
+					set filled [string map [list "$fpattern" "$other"] $filled]
+				} else {
+					set filled [string map [list "$fpattern" "$str"] $filled]
+				}
          } else {
-            set filled [string map [list "$fpattern" ""] $filled]
+            set filled [string map [list "$fpattern" "$def"] $filled]
          }
       } else {
-         set filled [string map [list "$fpattern" ""] $filled]
+         set filled [string map [list "$fpattern" "$def"] $filled]
       }
    }
 
+	debug DEBUG "Processing All Remaining Tags"
+	debug DEBUG "Search Line: $filled"
 	foreach {key value} $info {
       debug TEMPLATE "{%%$key%%}"
       regsub -all {\&} $value {\\&} value
@@ -688,6 +699,7 @@ proc getShowInfo {displayLine nick chan text} {
 	variable request
 	upvar show show
 	set url $tvrage(showinfourl)[http::formatQuery {show} [string trimleft $text]]
+	debug DEBUG "Getting $url"
 	if {[catch {set token [http::geturl $url -command [namespace current]::getShowInfoHandler -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       error $error
    } else {
@@ -708,9 +720,13 @@ proc getShowInfoHandler {token} {
 	variable tvrage
 	variable request
 
+	debug DEBUG "Entering show info handler."
+
 	set show(chan) $request($token,chan)
 	set show(nick) $request($token,nick)
 	set displayLine $request($token,displayLine)
+
+	debug DEBUG "Checking for http errors."
 
 	if { [http::status $token] == "timeout" } {
 		set problem "Timeout retrieving show info."
@@ -732,6 +748,8 @@ proc getShowInfoHandler {token} {
 
 	set data [http::data $token]
 	http::cleanup $token
+
+	debug DEBUG "Got show info."
 
 	foreach line [split $data \n] {
 		regsub -all {\x92} $line {'} line
@@ -908,8 +926,6 @@ proc updateCache {m h d mo y} {
    set now [clock scan [clock format [clock seconds] -format "%m/%d/%y"]]
    set old [expr ($now - ($tvrage(cacheForDays) * 86400))]
 
-	debug INFO "Beginning refresh of schedule cache."
-
    foreach c [split $tvrage(availableCountries)] {
       if {[info exists schedule($c:dates)]} {
          set upd ""
@@ -1051,7 +1067,7 @@ proc getSchedules {isNew} {
 		debug DEBUG "Cache is in process of being updated."
 		return
 	} elseif {$isNew} {
-		debug DEBUG "Starting schedule (re)caching."
+		debug INFO "Starting schedule (re)caching."
 	}
 
 	if {[countries size] == 0} {
@@ -1093,26 +1109,21 @@ proc getSchedulesHandler {token} {
 			debug ERROR "Failed to clean up http: $msg"
 		}
 		debug DEBUG "Cleaned up http."
-		if {[countries size] != 0} {
-			debug DEBUG "Add country back to end of queue. [countries size] schedules left to cache."
-			countries put $country
-			debug DEBUG "Processing Next Country: [countries peek]"
-			getSchedules 0
-		} else {
-			debug INFO "Finished schedule caching."
-		}
+
+		debug DEBUG "Add country back to end of queue. [countries size] schedules left to cache."
+		countries put $country
+		debug DEBUG "Processing Next Country: [countries peek]"
+		getSchedules 0
 		return
 	} elseif { [http::status $token] != "ok" } {
+		debug ERROR "unknown error"
 		debug ERROR [http::error $token]
 		unset request($token:country)
 		[http::cleanup $token]
-		if {[countries size] != 0} {
-			countries put $country
-			debug DEBUG "Processing Next Country: [countries peek]"
-			getSchedules 0
-		} else {
-			debug INFO "Finished schedule caching."
-		}
+
+		countries put $country
+		debug DEBUG "Processing Next Country: [countries peek]"
+		getSchedules 0
 		return
 	}
 	debug DEBUG "Retrieving schedule data."
