@@ -704,7 +704,7 @@ proc getShowInfo {displayLine nick chan text} {
 	debug DEBUG "Getting $url"
 	if {[catch {set token [http::geturl $url -command [namespace current]::getShowInfoHandler -timeout [expr $tvrage(httpTimeout) * 1000]]} error]} {
       error $error
-   } else {
+   } {
 		set request($token,nick) $nick
 		set request($token,chan) $chan
 		set request($token,displayLine) $displayLine
@@ -723,12 +723,6 @@ proc getShowInfoHandler {token} {
 	variable request
 
 	debug DEBUG "Entering show info handler."
-
-	while {![info exists request($token,nick)] ||
-		    ![info exists request($token,chan)] ||
-			 ![info exists request($token,displayLine)]} {
-		debug DEBUG "Some request variables not set yet."
-	}
 
 	set show(chan) $request($token,chan)
 	set show(nick) $request($token,nick)
@@ -1174,7 +1168,9 @@ proc checkCountries {m h d mo y} {
 	if {[countries size] != 0} {
 		debug DEBUG "Countries contains [countries size] elements."
 		debug DEBUG $::errorInfo
-	} elseif {[array size request] != 0} {
+	} 
+	
+	if {[array size request] != 0} {
 		debug DEBUG "Stale request info: [array names request]"
 	}
 }
