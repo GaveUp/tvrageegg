@@ -18,6 +18,11 @@
  options for show info.
 +Add ability to do "not exists" conditionals
  in templates.
++Add check for non-existent keys when
+ parsing conditional elements.
++Add after loops in handlers to handler 
+ situation where a required variable has not
+ been set yet.
 
 2.0b5
 -----

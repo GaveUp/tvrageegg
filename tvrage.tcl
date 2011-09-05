@@ -471,11 +471,13 @@ proc templateParser {template info} {
 	debug DEBUG "Processing Conditional Tags"
 	debug DEBUG "Search Line: $filled"
    while {[regexp "(\{\@\%(.*?):(.*?):(.*?)\%\@\})" $filled -> fpattern key value str]} {
-      if {[string toupper $show($key)] == [string toupper $value]} { 
-         set filled [string map [list "$fpattern" "$str"] $filled]
-      } else {
-         set filled [string map [list "$fpattern" ""] $filled]
-      }
+		if {[info exists show($key)]} {
+			if {[string toupper $show($key)] == [string toupper $value]} { 
+				set filled [string map [list "$fpattern" "$str"] $filled]
+			} else {
+				set filled [string map [list "$fpattern" ""] $filled]
+			}
+		}
    }
 
 	debug DEBUG "Processing Existence Tags"
@@ -721,6 +723,10 @@ proc getShowInfoHandler {token} {
 	variable request
 
 	debug DEBUG "Entering show info handler."
+
+	while {![info exists request($token,nick)]} [after 5]
+	while {![info exists request($token,chan)]} [after 5]
+	while {![info exists request($token,displayLine)]} [after 5]
 
 	set show(chan) $request($token,chan)
 	set show(nick) $request($token,nick)
@@ -1099,6 +1105,7 @@ proc getSchedulesHandler {token} {
 	variable countries
 	variable request
 
+	while {![info exists request($token:country)]} [after 5]
 	set country $request($token:country)
 
 	if { [http::status $token] == "timeout" } {
@@ -1169,7 +1176,14 @@ proc getSchedulesHandler {token} {
 
 proc checkCountries {m h d mo y} {
 	variable countries
-	debug DEBUG "Countries contains [countries size] elements."
+	variable request
+	
+	if {[countries size] != 0} {
+		debug DEBUG "Countries contains [countries size] elements."
+		debug DEBUG $::errorInfo
+	} elseif {[array size request] != 0} {
+		debug DEBUG "Stale request info: [array names request]"
+	}
 }
 bind time - "?0 * * * *" [namespace current]::checkCountries
 
