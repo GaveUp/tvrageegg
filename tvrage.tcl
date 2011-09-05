@@ -729,9 +729,6 @@ proc getShowInfoHandler {token} {
 			 ![info exists request($token,displayLine)]} {
 		debug DEBUG "Some request variables not set yet."
 	}
-#	while {![info exists request($token,nick)]} [after 5]
-#	while {![info exists request($token,chan)]} [after 5]
-#	while {![info exists request($token,displayLine)]} [after 5]
 
 	set show(chan) $request($token,chan)
 	set show(nick) $request($token,nick)
