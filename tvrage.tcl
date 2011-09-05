@@ -724,9 +724,14 @@ proc getShowInfoHandler {token} {
 
 	debug DEBUG "Entering show info handler."
 
-	while {![info exists request($token,nick)]} [after 5]
-	while {![info exists request($token,chan)]} [after 5]
-	while {![info exists request($token,displayLine)]} [after 5]
+	while {![info exists request($token,nick)] ||
+		    ![info exists request($token,chan)] ||
+			 ![info exists request($token,displayLine)]} {
+		debug DEBUG "Some request variables not set yet."
+	}
+#	while {![info exists request($token,nick)]} [after 5]
+#	while {![info exists request($token,chan)]} [after 5]
+#	while {![info exists request($token,displayLine)]} [after 5]
 
 	set show(chan) $request($token,chan)
 	set show(nick) $request($token,nick)
@@ -1065,7 +1070,6 @@ proc calculateDate {when} {
 
 proc getSchedules {isNew} {
    variable tvrage 
-	variable request
 
 	if {[catch {variable [struct::queue countries]} msg]} {}
 
@@ -1093,39 +1097,33 @@ proc getSchedules {isNew} {
 			countries put $country
 			getSchedules 0
 		}
-	} else {
-		set request($token:country) $country
 	}
-
 }
 
 proc getSchedulesHandler {token} {
    variable tvrage 
    variable schedule
 	variable countries
-	variable request
 
-	while {![info exists request($token:country)]} [after 5]
-	set country $request($token:country)
+	upvar #0 $token state
+	regexp {\?country=(.*)(?:&|$)} $state(url) -> country
 
 	if { [http::status $token] == "timeout" } {
-      debug ERROR "Timeout caching $request($token:country) schedule."
-		unset request($token:country)
+      debug ERROR "Timeout caching $country schedule."
 		debug DEBUG "Cleanup http."
 		if {[catch {http::cleanup $token} msg]} {
 			debug ERROR "Failed to clean up http: $msg"
 		}
 		debug DEBUG "Cleaned up http."
 
-		debug DEBUG "Add country back to end of queue. [countries size] schedules left to cache."
 		countries put $country
+		debug DEBUG "Add country back to end of queue. [countries size] schedules left to cache."
 		debug DEBUG "Processing Next Country: [countries peek]"
 		getSchedules 0
 		return
 	} elseif { [http::status $token] != "ok" } {
 		debug ERROR "unknown error"
 		debug ERROR [http::error $token]
-		unset request($token:country)
 		[http::cleanup $token]
 
 		countries put $country
@@ -1163,8 +1161,6 @@ proc getSchedulesHandler {token} {
          }
       }
    }
-
-	unset request($token:country)
 
 	if {[countries size] != 0} {
 		debug DEBUG "Processing Next Country: [countries peek]"
