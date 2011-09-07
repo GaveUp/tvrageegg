@@ -2,6 +2,8 @@
 | + added   - removed   * fixed/changed |
 -----------------------------------------
 
+2.0b6
+-----
 *Fix summary parsing broke by tvrage format
  change.
 *Fix bug causing multiline announce theme

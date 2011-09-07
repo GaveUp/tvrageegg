@@ -7,7 +7,7 @@ if [info exists tvrage] {
 set tvrage(scriptPath) [file dirname [info script]]
 
 if {[catch {exec /bin/sh -c "cd $tvrage(scriptPath) && git describe"} results]} {
-	set tvrage(version) "v2.0b6-dev"
+	set tvrage(version) "v2.0b6"
 } else {
 	set tvrage(version) $results
 }
