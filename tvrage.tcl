@@ -7,7 +7,7 @@ if [info exists tvrage] {
 set tvrage(scriptPath) [file dirname [info script]]
 
 if {[catch {exec /bin/sh -c "cd $tvrage(scriptPath) && git describe"} results]} {
-	set tvrage(version) "v2.0b6"
+	set tvrage(version) "v2.0"
 } else {
 	set tvrage(version) $results
 }
@@ -483,7 +483,6 @@ proc templateParser {template info} {
 	debug DEBUG "Processing Existence Tags"
 	debug DEBUG "Search Line: $filled"
    while {[regexp "(\{e\%(.*?):(?:(?:\\((.*?)\\)):(?:\\((.*?)\\))|(.*?))\%e\})" $filled -> fpattern key str def other]} {
-		putlog "$fpattern :::: $key :::: $str :::: $def :::: $other"
       if {[info exists show($key)]} {
          if {[string length $show($key)] > 0} {
 				if {[string length $other] > 0} {

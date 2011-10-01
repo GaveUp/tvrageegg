@@ -2,6 +2,11 @@
 | + added   - removed   * fixed/changed |
 -----------------------------------------
 
+2.0
+---
+*Removed a debug putlog that was spamming
+ the partyline on showinfo requests.
+
 2.0b6
 -----
 *Fix summary parsing broke by tvrage format
