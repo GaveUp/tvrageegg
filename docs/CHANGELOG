@@ -2,6 +2,10 @@
 | + added   - removed   * fixed/changed |
 -----------------------------------------
 
+*Add fix from speechles to resolve occassional 
+ errors when an error occurred retrieving show
+ info.
+
 2.0
 ---
 *Removed a debug putlog that was spamming

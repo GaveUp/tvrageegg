@@ -721,6 +721,11 @@ proc getShowInfoHandler {token} {
 	variable tvrage
 	variable request
 
+	if {![info exists request($token,chan)]} {
+		debug INFO "Error occurred and has already been handled."
+		return
+	}
+
 	debug DEBUG "Entering show info handler."
 
 	set show(chan) $request($token,chan)
