@@ -143,7 +143,7 @@ proc init {} {
 
    setupCustomTriggers
 
-   updateCache 1 2 3 4 5
+	updateCache 1 2 3 4 5
 }
 
 proc setupCustomTriggers {} {
@@ -886,6 +886,9 @@ proc announceShows {minute hour day month year} {
    if {[dict exists $schedule($tvrage(announceCountry):schedule) $cDate $cTime]} {
       set cLine {}
 
+		debug DEBUG "Incude Filtered Networks :: $tvrage(includeOnlyFiltered)"
+		debug DEBUG "Filtered Networks :: $tvrage(filteredNetworks)"
+
       foreach s [dict get $schedule($tvrage(announceCountry):schedule) $cDate $cTime] {
          foreach k [dict keys $s] {
             set data($k) [dict get $s $k]
@@ -894,14 +897,18 @@ proc announceShows {minute hour day month year} {
          if {$tvrage(includeOnlyFiltered)} {
             set include 0
             foreach n $tvrage(filteredNetworks) {
+					debug DEBUG "Checking for filtered network :: $n"
                if {$n == $data(network)} {
+						debug DEBUG "Including show (in filteredNetworks): $data(show)"
                   set include 1
                }
             }
          } else {
             set include 1
             foreach n $tvrage(filteredNetworks) {
+					debug DEBUG "Checking for filtered network :: $n"
                if {$n == $data(network)} {
+						debug DEBUG "Excluding show (in filteredNetworks): $data(show)"
                   set include 0
                }
             }
@@ -1096,7 +1103,7 @@ proc getSchedules {isNew} {
 }
 
 proc getSchedulesHandler {token} {
-   variable tvrage 
+   variable tvrage
    variable schedule
 	variable countries
 
